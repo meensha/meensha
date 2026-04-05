@@ -222,6 +222,14 @@ td input,td select{padding:4px 7px;border:1px solid var(--bd);border-radius:4px;
 
 <!-- ═══ ADD STOCK ═══ -->
 <div id="tp-stock" class="tp">
+  <!-- Sub-tabs -->
+  <div style="display:flex;border-bottom:2px solid var(--bd);margin-bottom:18px;gap:0;">
+    <button class="stab on" onclick="showStockTab('st-purchase',this)" id="stb-purchase" style="padding:10px 20px;font-size:12px;font-weight:700;border:none;background:none;cursor:pointer;color:var(--gdk);border-bottom:2px solid var(--gdk);margin-bottom:-2px;letter-spacing:.05em;">📦 Stock Purchase</button>
+    <button class="stab" onclick="showStockTab('st-overheads',this)" id="stb-overheads" style="padding:10px 20px;font-size:12px;font-weight:700;border:none;background:none;cursor:pointer;color:var(--gy);border-bottom:2px solid transparent;margin-bottom:-2px;letter-spacing:.05em;">💸 Overheads & Expenses</button>
+  </div>
+
+  <!-- ── SUB-TAB: Stock Purchase ── -->
+  <div id="st-purchase">
   <div class="card"><div class="ct">👤 Seller</div>
     <div class="fg">
       <div class="fi"><label>Seller Name *</label><input id="SI-SEL" placeholder="e.g. Ramesh Weaves"></div>
@@ -258,6 +266,69 @@ td input,td select{padding:4px 7px;border:1px solid var(--bd);border-radius:4px;
     <button class="btn bg" onclick="saveSIEntry()">💾 Save Purchase</button>
     <button class="btn bgy" onclick="clearSI()">🗑️ Clear</button>
   </div>
+  </div><!-- end st-purchase -->
+
+  <!-- ── SUB-TAB: Overheads & Expenses ── -->
+  <div id="st-overheads" style="display:none;">
+    <div class="card">
+      <div class="ct">💸 Add Expense</div>
+      <div class="fg">
+        <div class="fi"><label>Date *</label><input type="date" id="OV-DT"></div>
+        <div class="fi"><label>Category</label>
+          <select id="OV-CAT">
+            <option>Web Design & Hosting</option><option>Market Research</option>
+            <option>Accounting & Legal</option><option>Social Media & Marketing</option>
+            <option>Exhibition / Stall</option><option>Packaging & Supplies</option>
+            <option>Transport & Logistics</option><option>Shipping Costs</option>
+            <option>Miscellaneous</option>
+          </select>
+        </div>
+        <div class="fi" style="grid-column:1/-1"><label>Description *</label><input id="OV-DESC" placeholder="e.g. Instagram ads for March exhibition"></div>
+        <div class="fi"><label>Unit Price ₹</label><input type="number" id="OV-UNIT" placeholder="0" oninput="calcOVTot()"></div>
+        <div class="fi"><label>Qty</label><input type="number" id="OV-QTY" value="1" min="1" oninput="calcOVTot()"></div>
+        <div class="fi"><label>Total ₹</label><input type="number" id="OV-TOT" readonly style="background:#f0f0f0;"></div>
+        <div class="fi"><label>Paid By</label>
+          <select id="OV-BY" onchange="calcOVSplit()">
+            <option value="Shalini">🌸 Shalini</option>
+            <option value="Meenakshi">🌺 Meenakshi</option>
+            <option value="Shared">🤝 Shared 50/50</option>
+          </select>
+        </div>
+        <div class="fi"><label>🌸 Shalini ₹</label><input type="number" id="OV-SH" oninput="chkOVSplit()"></div>
+        <div class="fi"><label>🌺 Meenakshi ₹</label><input type="number" id="OV-ME" oninput="chkOVSplit()"></div>
+      </div>
+      <div id="OV-WARN" style="color:var(--red);font-size:11px;margin-bottom:8px;display:none;">⚠️ Split doesn't match total!</div>
+      <div class="fi" style="max-width:400px;margin-bottom:12px;"><label>Notes</label><textarea id="OV-NOTE" placeholder="Any additional notes..."></textarea></div>
+      <button class="btn bg" onclick="saveOV()">➕ Add Expense</button>
+    </div>
+
+    <!-- Purchase & Expense History with Contribution Breakdown -->
+    <div class="card">
+      <div class="ct">📋 Expense Register <span style="font-size:10px;color:var(--gy);font-weight:400;margin-left:8px;">Editable by Shalini & Meenakshi only</span></div>
+      <div style="display:flex;gap:7px;flex-wrap:wrap;margin-bottom:13px;">
+        <select id="OV-FCAT" onchange="renderOVList()"><option value="">All Categories</option><option>Web Design & Hosting</option><option>Social Media & Marketing</option><option>Exhibition / Stall</option><option>Packaging & Supplies</option><option>Transport & Logistics</option><option>Shipping Costs</option><option>Miscellaneous</option></select>
+        <select id="OV-FWH" onchange="renderOVList()"><option value="">All</option><option value="Shalini">🌸 Shalini</option><option value="Meenakshi">🌺 Meenakshi</option><option value="Shared">🤝 Shared</option></select>
+        <input type="date" id="OV-FFR" onchange="renderOVList()">
+        <input type="date" id="OV-FTO" onchange="renderOVList()">
+      </div>
+      <!-- Contribution summary -->
+      <div id="OV-SUMMARY" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:14px;"></div>
+      <div class="tw"><table><thead><tr><th>Date</th><th>Category</th><th>Description</th><th>Total ₹</th><th>Paid By</th><th>🌸 Shalini</th><th>🌺 Meenakshi</th><th>Notes</th><th>Actions</th></tr></thead><tbody id="OV-BODY"></tbody></table></div>
+      <!-- Recent changes history -->
+      <div style="margin-top:16px;">
+        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:var(--gdk);margin-bottom:8px;">🕐 Recent Changes</div>
+        <div id="OV-HISTORY" style="font-size:11px;color:var(--gy);max-height:160px;overflow-y:auto;"></div>
+      </div>
+    </div>
+
+    <!-- Stock Purchase Contribution Breakdown -->
+    <div class="card">
+      <div class="ct">📦 Stock Purchase Breakdown</div>
+      <div style="font-size:12px;color:var(--gy);margin-bottom:12px;">Contribution per purchase — calculated from split entered at time of stock purchase. Editable by owners.</div>
+      <div id="SP-BREAKDOWN" style="overflow-x:auto;"></div>
+    </div>
+  </div><!-- end st-overheads -->
+
 </div>
 
 <!-- ═══ NEW SALE ═══ -->
@@ -469,7 +540,7 @@ td input,td select{padding:4px 7px;border:1px solid var(--bd);border-radius:4px;
     <div class="fi"><label>Username *</label><input id="U-UN" placeholder="e.g. sales2"></div>
     <div class="fi"><label>Password *</label><input type="password" id="U-PW" placeholder="Password"></div>
     <div class="fi"><label>Display Name *</label><input id="U-NM" placeholder="Full name"></div>
-    <div class="fi"><label>Role *</label><select id="U-RL"><option value="sales">Sales</option><option value="admin">Admin</option><option value="owner">Owner</option></select></div>
+    <div class="fi"><label>Role *</label><select id="U-RL"><option value="sales">Sales</option><option value="owner">Owner (Shalini/Meenakshi)</option><option value="super_admin">Super Admin (Shameen)</option></select></div>
     <div class="fi"><label>WhatsApp</label><input id="U-WA" placeholder="+91..."></div>
     <div class="fi"><label>Status</label><select id="U-AC"><option value="true">Active</option><option value="false">Inactive</option></select></div>
   </div>
@@ -484,7 +555,7 @@ const SB='https://eglanmhhcccsuhbxywua.supabase.co';
 const SK='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVnbGFubWhoY2Njc3VoYnh5d3VhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ4Nzc2MDQsImV4cCI6MjA5MDQ1MzYwNH0.0qjzkMVVajqMkx7SM-hhd6J62zVVFduVDbdr6juiNgo';
 const MRP_M={'Cotton':2.1,'Silk':1.8,'Tussar':2.0,'Modal':2.0,'Modal Silk':1.75,'Cotton Silk':2.2,'Tussar Silk':2.0,'Kota Doria':1.8,'default':2.0};
 const COUR={'Delhivery':'https://www.delhivery.com/track/package/','BlueDart':'https://www.bluedart.com/tracking?trackFor=0&trackNum=','DTDC':'https://www.dtdc.in/trace.asp?Ttype=S&TNo=','Ekart':'https://ekartlogistics.com/shipmenttracking/','India Post':'https://www.indiapost.gov.in/vas/pages/trackconsignment.aspx','DHL':'https://www.dhl.com/in-en/home/tracking.html?tracking-id=','Other':''};
-const LOCAL_USERS=[{username:'shameen',password_hash:'admin@123',role:'owner',display_name:'Meenakshi',wa:'918709525218',active:true},{username:'shalini',password_hash:'shalini@123',role:'owner',display_name:'Shalini',wa:'',active:true},{username:'siteadmin',password_hash:'site@123',role:'admin',display_name:'Site Admin',wa:'',active:true},{username:'sales1',password_hash:'sales@123',role:'sales',display_name:'Sales',wa:'',active:true}];
+const LOCAL_USERS=[{username:'shameen',password_hash:'admin@123',role:'super_admin',display_name:'Meenakshi (Admin)',wa:'918709525218',active:true},{username:'shalini',password_hash:'shalini@123',role:'owner',display_name:'Shalini',wa:'',active:true},{username:'meenakshi',password_hash:'meenakshi@123',role:'owner',display_name:'Meenakshi',wa:'918709525218',active:true},{username:'sales1',password_hash:'sales@123',role:'sales',display_name:'Sales',wa:'',active:true}];
 const SEED_INV=[{item_id:'#1',cat:'PAITH/COT',name:'Paithani Cotton',subtype:'',fabric:'Cotton',qty:6,sold:0,cost:3000,mrp:4200,disc:10,sale_price:3780,photos:[]},{item_id:'#2',cat:'AJRK/MODL/SLK',name:'Ajrak Modal Silk',subtype:'',fabric:'Modal Silk',qty:5,sold:0,cost:1399,mrp:2200,disc:10,sale_price:1980,photos:[]},{item_id:'#5',cat:'PCHMPL/COT/SLK',name:'Pochampally Cotton Silk',subtype:'',fabric:'Cotton Silk',qty:1,sold:0,cost:720,mrp:1800,disc:10,sale_price:1620,photos:[]},{item_id:'#6',cat:'DOLA/SLK2',name:'Dola Silk 2',subtype:'',fabric:'Silk',qty:1,sold:0,cost:720,mrp:1500,disc:10,sale_price:1350,photos:[]},{item_id:'#7',cat:'DOLA/SLK1',name:'Dola Silk 1',subtype:'',fabric:'Silk',qty:1,sold:0,cost:899,mrp:2000,disc:10,sale_price:1800,photos:[]},{item_id:'#8',cat:'TUSS/SLK/MDHB',name:'Tussar Silk',subtype:'Madhubani',fabric:'Tussar Silk',qty:3,sold:0,cost:3200,mrp:6400,disc:10,sale_price:5760,photos:[]},{item_id:'#9',cat:'TUSS/DUPIN',name:'Tussar Dupin',subtype:'',fabric:'Tussar',qty:1,sold:0,cost:3100,mrp:6000,disc:10,sale_price:5400,photos:[]},{item_id:'#10',cat:'TUSS/HAND',name:'Tussar',subtype:'Handpainted',fabric:'Tussar',qty:2,sold:0,cost:4800,mrp:9000,disc:10,sale_price:8100,photos:[]},{item_id:'#11',cat:'TUSS/SUIT/MDHB',name:'Tussar Suit',subtype:'Madhubani',fabric:'Tussar',qty:4,sold:0,cost:3000,mrp:5600,disc:10,sale_price:5040,photos:[]},{item_id:'#12',cat:'TUSS/GHCHA',name:'Tussar',subtype:'Ghicha',fabric:'Tussar',qty:4,sold:0,cost:4200,mrp:8500,disc:10,sale_price:7650,photos:[]},{item_id:'#13',cat:'IKKT/COT',name:'Ikkat',subtype:'Cotton',fabric:'Cotton',qty:13,sold:0,cost:2000,mrp:4200,disc:10,sale_price:3780,photos:[]},{item_id:'#14',cat:'KLMK/COT',name:'Kalamkari',subtype:'Cotton',fabric:'Cotton',qty:6,sold:0,cost:1000,mrp:2200,disc:10,sale_price:1980,photos:[]},{item_id:'#15',cat:'MUL/COT',name:'Mul Cotton',subtype:'',fabric:'Cotton',qty:1,sold:0,cost:2200,mrp:4500,disc:10,sale_price:4050,photos:[]},{item_id:'#16',cat:'GHRCHL/AJRKSEMI',name:'Gharchola',subtype:'Semi Ajrak',fabric:'Silk',qty:4,sold:0,cost:3700,mrp:7500,disc:10,sale_price:6750,photos:[]},{item_id:'#17',cat:'GHRCHL/BANDH',name:'Gharchola',subtype:'Bandhej',fabric:'Silk',qty:1,sold:0,cost:3100,mrp:6300,disc:10,sale_price:5670,photos:[]},{item_id:'#18',cat:'AJRK/PL',name:'Ajrak Plain',subtype:'',fabric:'Cotton',qty:5,sold:0,cost:2600,mrp:5500,disc:10,sale_price:4950,photos:[]},{item_id:'#19',cat:'MODAL/PL',name:'Modal Plain',subtype:'',fabric:'Modal',qty:5,sold:0,cost:1650,mrp:3300,disc:10,sale_price:2970,photos:[]},{item_id:'#20',cat:'MODAL/AJRK',name:'Modal Ajrak',subtype:'',fabric:'Modal',qty:5,sold:0,cost:2500,mrp:4800,disc:10,sale_price:4320,photos:[]},{item_id:'#21',cat:'KOTA/BLOCK',name:'Kota Doria',subtype:'Block Print',fabric:'Kota Doria',qty:2,sold:0,cost:1700,mrp:2900,disc:10,sale_price:2610,photos:[]},{item_id:'#22',cat:'KOTA/SCRN',name:'Kota Doria',subtype:'Screen Print',fabric:'Kota Doria',qty:2,sold:0,cost:1300,mrp:2500,disc:10,sale_price:2250,photos:[]},{item_id:'#23',cat:'DOLA/MODAL/SLK',name:'Dola Modal Silk',subtype:'',fabric:'Modal Silk',qty:1,sold:0,cost:2700,mrp:5800,disc:10,sale_price:5220,photos:[]},{item_id:'#24',cat:'PATOLA/SLK1',name:'Patola Silk 1',subtype:'',fabric:'Silk',qty:1,sold:0,cost:10000,mrp:17900,disc:10,sale_price:16110,photos:[]},{item_id:'#25',cat:'PATOLA/SLK2',name:'Patola Silk 2',subtype:'',fabric:'Silk',qty:1,sold:0,cost:11000,mrp:18500,disc:10,sale_price:16650,photos:[]}];
 
 // ═══════════════════════════════════════════════
@@ -531,17 +602,29 @@ async function doLogin(){
   if(user.id&&!user.id.startsWith('local-')){try{await sbUpd('users',`?id=eq.${user.id}`,{last_login:new Date().toISOString()});}catch{}}
   initApp();
 }
-function doLogout(){sessionStorage.removeItem('MSN_USER');location.reload();}
+function doLogout(){sessionStorage.removeItem('MSN_USER');window.location.href='index.html';}
 
 // ═══════════════════════════════════════════════
 // ROLE ACCESS
 // ═══════════════════════════════════════════════
 function applyRole(){
   const r=CU.role;
-  document.getElementById('TBU').textContent=CU.display_name+' · '+r.toUpperCase();
-  if(r==='sales'){['tb-stock','tb-pnl','tb-usr'].forEach(id=>document.getElementById(id)?.classList.add('hi'));document.getElementById('SA-SECTION')?.classList.add('hi');}
-  if(r==='admin'){['tb-stock','tb-pnl','tb-usr'].forEach(id=>document.getElementById(id)?.classList.add('hi'));}
-  if(r!=='owner'){document.getElementById('tb-usr')?.classList.add('hi');}
+  // Role labels
+  const lbl={super_admin:'Super Admin',owner:'Owner',sales:'Sales'};
+  document.getElementById('TBU').textContent=CU.display_name+' · '+(lbl[r]||r.toUpperCase());
+  if(r==='super_admin'){const el=document.getElementById('TBU');if(el)el.style.color='#C9A84C';}
+  // super_admin = all access (shameen)
+  // owner = edit sales, stock, purchase, P&L, but not users tab
+  // sales = new sale + view inventory only
+  if(r==='sales'){
+    ['tb-stock','tb-pnl','tb-usr','tb-rev'].forEach(id=>document.getElementById(id)?.classList.add('hi'));
+    document.getElementById('SA-SECTION')?.classList.add('hi');
+  }
+  if(r==='owner'){
+    // owners see everything except super_admin-only controls
+    document.getElementById('tb-usr')?.classList.add('hi');
+  }
+  // super_admin sees everything — no restrictions
 }
 
 // ═══════════════════════════════════════════════
@@ -681,7 +764,7 @@ function renderInv(){
     if(st==='in'&&av<=0)return;if(st==='low'&&(av<=0||av>2))return;if(st==='out'&&av>0)return;
     const badge=av<=0?'<span class="bx br2">Sold Out</span>':av<=2?'<span class="bx ba">Low</span>':'<span class="bx bg2">Available</span>';
     const tr=document.createElement('tr');
-    tr.innerHTML=`<td><strong>${it.item_id}</strong></td><td style="font-family:monospace;font-size:11px;">${it.cat}</td><td>${it.name}</td><td style="color:var(--gy);">${it.subtype||'—'}</td><td><span class="bx bb2">${it.fabric}</span></td><td><strong>${av}</strong>/${it.qty}</td><td>₹${fmt(it.cost)}</td><td>₹${fmt(it.mrp)}</td><td>${it.disc}%</td><td style="font-weight:700;color:var(--gdk);">₹${fmt(it.sale_price)}</td><td>${badge}</td><td><button class="btn bgy xs" onclick="openPhMo('inv','${it.id}')">📷 ${(it.photos||[]).length}</button></td><td style="display:flex;gap:3px;"><button class="btn bb xs" onclick="editItem(${i})">✏️</button>${CU.role==='owner'?`<button class="btn br xs" onclick="delItem('${it.id}')">🗑️</button>`:''}</td>`;
+    tr.innerHTML=`<td><strong>${it.item_id}</strong></td><td style="font-family:monospace;font-size:11px;">${it.cat}</td><td>${it.name}</td><td style="color:var(--gy);">${it.subtype||'—'}</td><td><span class="bx bb2">${it.fabric}</span></td><td><strong>${av}</strong>/${it.qty}</td><td>₹${fmt(it.cost)}</td><td>₹${fmt(it.mrp)}</td><td>${it.disc}%</td><td style="font-weight:700;color:var(--gdk);">₹${fmt(it.sale_price)}</td><td>${badge}</td><td><button class="btn bgy xs" onclick="openPhMo('inv','${it.id}')">📷 ${(it.photos||[]).length}</button></td><td style="display:flex;gap:3px;"><button class="btn bb xs" onclick="editItem(${i})">✏️</button>${(CU.role==='owner'||CU.role==='super_admin')?`<button class="btn br xs" onclick="delItem('${it.id}')">🗑️</button>`:''}</td>`;
     tb.appendChild(tr);
   });
 }
@@ -843,7 +926,7 @@ function renderSumStats(){
 function renderSales(){
   const q=(document.getElementById('SM-Q').value||'').toLowerCase(),dm=document.getElementById('SM-DM').value,ss=document.getElementById('SM-SS').value,fr=document.getElementById('SM-FR').value,to=document.getElementById('SM-TO').value;
   const tb=document.getElementById('SM-BODY');tb.innerHTML='';
-  const isOwn=CU.role==='owner';
+  const isOwn=CU.role==='owner'||CU.role==='super_admin';
   sales.filter(s=>{
     if(q&&!s.customer?.name?.toLowerCase().includes(q)&&!s.inv?.toLowerCase().includes(q))return false;
     if(dm&&s.delivery_mode!==dm)return false;if(ss&&s.shipping_status!==ss)return false;
@@ -904,7 +987,7 @@ async function modRev(id,status){await sbUpd('reviews',`?id=eq.${id}`,{status,ap
 // ═══════════════════════════════════════════════
 // USERS
 // ═══════════════════════════════════════════════
-function renderUsers(){const tb=document.getElementById('USR-BODY');tb.innerHTML='';users.forEach(u=>{const tr=document.createElement('tr');tr.innerHTML=`<td><strong>${u.username}</strong></td><td>${u.display_name||''}</td><td><span class="bx ${u.role==='owner'?'bg2':u.role==='admin'?'bb2':'bgy2'}">${u.role}</span></td><td>${u.wa||'—'}</td><td><span class="bx ${u.active?'bg2':'br2'}">${u.active?'Active':'Inactive'}</span></td><td style="font-size:11px;">${u.last_login?.split('T')[0]||'—'}</td><td style="display:flex;gap:3px;"><button class="btn bgy xs" onclick="editUsr('${u.id}')">✏️</button>${u.id!==CU.id?`<button class="btn br xs" onclick="delUsr('${u.id}')">🗑️</button>`:''}</td>`;tb.appendChild(tr);});}
+function renderUsers(){const tb=document.getElementById('USR-BODY');tb.innerHTML='';users.forEach(u=>{const tr=document.createElement('tr');tr.innerHTML=`<td><strong>${u.username}</strong></td><td>${u.display_name||''}</td><td><span class="bx ${u.role==='super_admin'?'bo':u.role==='owner'?'bg2':u.role==='admin'?'bb2':'bgy2'}">${u.role}</span></td><td>${u.wa||'—'}</td><td><span class="bx ${u.active?'bg2':'br2'}">${u.active?'Active':'Inactive'}</span></td><td style="font-size:11px;">${u.last_login?.split('T')[0]||'—'}</td><td style="display:flex;gap:3px;"><button class="btn bgy xs" onclick="editUsr('${u.id}')">✏️</button>${u.id!==CU.id?`<button class="btn br xs" onclick="delUsr('${u.id}')">🗑️</button>`:''}</td>`;tb.appendChild(tr);});}
 let editUsrId=null;
 function openUsrModal(){editUsrId=null;document.getElementById('USR-TITLE').textContent='➕ Add User';['U-UN','U-PW','U-NM','U-WA'].forEach(id=>document.getElementById(id).value='');document.getElementById('U-RL').value='sales';document.getElementById('U-AC').value='true';document.getElementById('MO-USR').classList.remove('hi');}
 function editUsr(id){const u=users.find(x=>x.id===id);if(!u)return;editUsrId=id;document.getElementById('USR-TITLE').textContent='✏️ Edit User';document.getElementById('U-UN').value=u.username;document.getElementById('U-PW').value='';document.getElementById('U-NM').value=u.display_name||'';document.getElementById('U-RL').value=u.role;document.getElementById('U-WA').value=u.wa||'';document.getElementById('U-AC').value=String(u.active);document.getElementById('MO-USR').classList.remove('hi');}
@@ -1003,11 +1086,96 @@ async function doImport(e){
 function closeMo(id){document.getElementById(id)?.classList.add('hi');const pz=document.getElementById('PH-ZONE');if(pz)pz.style.display='';}
 
 // ═══════════════════════════════════════════════
+// STOCK SUB-TABS + OVERHEADS
+// ═══════════════════════════════════════════════
+function showStockTab(id, btn){
+  ['st-purchase','st-overheads'].forEach(t=>document.getElementById(t).style.display='none');
+  document.getElementById(id).style.display='block';
+  document.querySelectorAll('.stab').forEach(b=>{b.style.color='var(--gy)';b.style.borderBottomColor='transparent';});
+  if(btn){btn.style.color='var(--gdk)';btn.style.borderBottomColor='var(--gdk)';}
+  if(id==='st-overheads')renderOVList();
+}
+function calcOVTot(){const u=parseFloat(document.getElementById('OV-UNIT').value)||0,q=parseFloat(document.getElementById('OV-QTY').value)||1;const t=Math.round(u*q*100)/100;document.getElementById('OV-TOT').value=t;calcOVSplit();}
+function calcOVSplit(){const t=parseFloat(document.getElementById('OV-TOT').value)||0,by=document.getElementById('OV-BY').value;if(by==='Shalini'){document.getElementById('OV-SH').value=t;document.getElementById('OV-ME').value=0;}else if(by==='Meenakshi'){document.getElementById('OV-SH').value=0;document.getElementById('OV-ME').value=t;}else{const h=Math.round(t/2*100)/100;document.getElementById('OV-SH').value=h;document.getElementById('OV-ME').value=t-h;}chkOVSplit();}
+function chkOVSplit(){const t=parseFloat(document.getElementById('OV-TOT').value)||0,s=parseFloat(document.getElementById('OV-SH').value)||0,m=parseFloat(document.getElementById('OV-ME').value)||0;const w=document.getElementById('OV-WARN');w.style.display=Math.abs(s+m-t)>0.1?'block':'none';}
+async function saveOV(){
+  if(!(['owner','super_admin'].includes(CU.role))){toast('Only owners can add expenses','var(--red)');return;}
+  const dt=document.getElementById('OV-DT').value,desc=document.getElementById('OV-DESC').value.trim();
+  if(!dt||!desc){toast('Date and description required','var(--red)');return;}
+  const tot=parseFloat(document.getElementById('OV-TOT').value)||0,by=document.getElementById('OV-BY').value;
+  const sh=parseFloat(document.getElementById('OV-SH').value)||0,me2=parseFloat(document.getElementById('OV-ME').value)||0;
+  const note=document.getElementById('OV-NOTE').value;
+  // Save to overheads with edit history
+  const rec={date:dt,cat:document.getElementById('OV-CAT').value,description:desc,unit_price:parseFloat(document.getElementById('OV-UNIT').value)||0,qty:parseFloat(document.getElementById('OV-QTY').value)||1,total:tot,paid_by:by,shalini:sh,meenakshi:me2,note,last_edited_by:CU.display_name,last_edited_at:new Date().toISOString()};
+  await sbIns('overheads',rec);
+  ohs=await sbQ('overheads','?order=created_at.desc');
+  // Clear form
+  ['OV-DT','OV-UNIT','OV-QTY','OV-TOT','OV-SH','OV-ME','OV-NOTE'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  document.getElementById('OV-DESC').value='';
+  document.getElementById('OV-QTY').value=1;
+  renderOVList();toast('✅ Expense added','#27ae60');
+}
+async function editOV(id){
+  if(!(['owner','super_admin'].includes(CU.role))){toast('Only owners can edit expenses','var(--red)');return;}
+  const o=ohs.find(x=>x.id===id);if(!o)return;
+  const newSh=parseFloat(prompt('🌸 Shalini contribution (₹):',o.shalini||0));
+  const newMe=parseFloat(prompt('🌺 Meenakshi contribution (₹):',o.meenakshi||0));
+  if(isNaN(newSh)||isNaN(newMe))return;
+  const histKey='oh_hist_'+id;const prev=JSON.parse(localStorage.getItem(histKey)||'[]');
+  prev.unshift({at:new Date().toLocaleString('en-IN'),by:CU.display_name,old_sh:o.shalini,old_me:o.meenakshi,new_sh:newSh,new_me:newMe});
+  localStorage.setItem(histKey,JSON.stringify(prev.slice(0,5)));
+  await sbUpd('overheads',`?id=eq.${id}`,{shalini:newSh,meenakshi:newMe,last_edited_by:CU.display_name,last_edited_at:new Date().toISOString()});
+  ohs=await sbQ('overheads','?order=created_at.desc');renderOVList();toast('✅ Updated','#27ae60');
+}
+async function delOV2(id){
+  if(!(['owner','super_admin'].includes(CU.role))){toast('Only owners can delete','var(--red)');return;}
+  if(!confirm('Delete this expense?'))return;
+  await sbDel('overheads',`?id=eq.${id}`);ohs=ohs.filter(o=>o.id!==id);renderOVList();toast('Deleted','var(--red)');
+}
+function renderOVList(){
+  const cat=document.getElementById('OV-FCAT')?.value||'',wh=document.getElementById('OV-FWH')?.value||'';
+  const fr=document.getElementById('OV-FFR')?.value||'',to=document.getElementById('OV-FTO')?.value||'';
+  const rows=ohs.filter(o=>o.cat!=='Stock Purchase').filter(o=>{
+    if(cat&&o.cat!==cat)return false;
+    if(wh&&o.paid_by!==wh)return false;
+    if(fr&&o.date<fr)return false;
+    if(to&&o.date>to)return false;
+    return true;
+  });
+  // Summary
+  const totSh=rows.reduce((a,o)=>a+(o.shalini||0),0),totMe=rows.reduce((a,o)=>a+(o.meenakshi||0),0),totAll=rows.reduce((a,o)=>a+(o.total||0),0);
+  const sumEl=document.getElementById('OV-SUMMARY');
+  if(sumEl)sumEl.innerHTML=`<div class="sc"><div class="sn">₹${fmt(totAll)}</div><div class="sl">Total Expenses</div></div><div class="sc" style="background:#f8fff8;"><div class="sn" style="color:var(--grn);">₹${fmt(totSh)}</div><div class="sl">🌸 Shalini Paid</div></div><div class="sc" style="background:#f8fff8;"><div class="sn" style="color:var(--blu);">₹${fmt(totMe)}</div><div class="sl">🌺 Meenakshi Paid</div></div>`;
+  const isOwner=['owner','super_admin'].includes(CU.role);
+  const tb=document.getElementById('OV-BODY');tb.innerHTML='';
+  rows.forEach(o=>{const tr=document.createElement('tr');
+    tr.innerHTML=`<td>${o.date}</td><td style="font-size:11px;">${o.cat}</td><td>${o.description}</td><td style="font-weight:700;">₹${fmt(o.total)}</td><td><span class="bx ${o.paid_by==='Shalini'?'bb2':o.paid_by==='Meenakshi'?'bp':'bg2'}">${o.paid_by}</span></td><td style="color:var(--grn);font-weight:700;">₹${fmt(o.shalini)}</td><td style="color:var(--blu);font-weight:700;">₹${fmt(o.meenakshi)}</td><td style="font-size:11px;color:var(--gy);">${o.note||'—'}</td><td style="display:flex;gap:3px;">${isOwner?`<button class="btn bb xs" onclick="editOV('${o.id}')">✏️</button><button class="btn br xs" onclick="delOV2('${o.id}')">🗑️</button>`:''}</td>`;
+    tb.appendChild(tr);
+  });
+  // Recent changes history from localStorage
+  const histDiv=document.getElementById('OV-HISTORY');
+  if(histDiv){
+    const allHist=[];
+    rows.forEach(o=>{const h=JSON.parse(localStorage.getItem('oh_hist_'+o.id)||'[]');h.forEach(e=>allHist.push({...e,desc:o.description}));});
+    allHist.sort((a,b)=>b.at.localeCompare(a.at));
+    histDiv.innerHTML=allHist.length?allHist.slice(0,10).map(e=>`<div style="padding:5px 0;border-bottom:1px solid #f0e8d8;">${e.at} · <strong>${e.by}</strong> edited "<em>${e.desc}</em>": Shalini ₹${e.old_sh}→₹${e.new_sh}, Meenakshi ₹${e.old_me}→₹${e.new_me}</div>`).join(''):'<em>No edits recorded yet.</em>';
+  }
+  // Stock Purchase Breakdown
+  const spDiv=document.getElementById('SP-BREAKDOWN');
+  if(spDiv){
+    const purRows=purch.filter(p=>!fr||p.date>=fr).filter(p=>!to||p.date<=to);
+    if(!purRows.length){spDiv.innerHTML='<p style="color:var(--gy);font-style:italic;font-size:12px;">No purchases yet.</p>';return;}
+    const totPSh=purRows.reduce((a,p)=>a+(p.payment?.shalini||0),0),totPMe=purRows.reduce((a,p)=>a+(p.payment?.meenakshi||0),0);
+    spDiv.innerHTML=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:13px;"><div class="sc" style="background:#f8fff8;"><div class="sn" style="color:var(--grn);">₹${fmt(totPSh)}</div><div class="sl">🌸 Shalini Total Invested</div></div><div class="sc" style="background:#f8fff8;"><div class="sn" style="color:var(--blu);">₹${fmt(totPMe)}</div><div class="sl">🌺 Meenakshi Total Invested</div></div></div><div class="tw"><table><thead><tr><th>Date</th><th>Seller</th><th>Items</th><th>Total ₹</th><th>Paid ₹</th><th>🌸 Shalini</th><th>🌺 Meenakshi</th></tr></thead><tbody>${purRows.map(p=>`<tr><td>${p.date}</td><td>${p.seller}</td><td style="font-size:11px;">${(p.items||[]).map(i=>i.name).join(', ')}</td><td style="font-weight:700;">₹${fmt(p.total)}</td><td>₹${fmt(p.payment?.amount||0)}</td><td style="color:var(--grn);font-weight:700;">₹${fmt(p.payment?.shalini||0)}</td><td style="color:var(--blu);font-weight:700;">₹${fmt(p.payment?.meenakshi||0)}</td></tr>`).join('')}</tbody></table></div>`;
+  }
+}
+
+// ═══════════════════════════════════════════════
 // STARTUP
 // ═══════════════════════════════════════════════
 window.onload=()=>{
   const today=new Date().toISOString().split('T')[0];
-  ['SI-DT','SI-PDT','SA-DT','OH-DT'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=today;});
+  ['SI-DT','SI-PDT','SA-DT','OH-DT','OV-DT'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=today;});
   document.getElementById('SA-INV').value='MSH-'+(invCtr+1);
   const stored=sessionStorage.getItem('MSN_USER');
   if(stored){CU=JSON.parse(stored);document.getElementById('LOV').classList.add('hi');initApp();}
